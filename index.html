@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking de Evasión</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d0d0d; font-family: 'Inter', sans-serif; display: flex; justify-content: center; padding: 0; }
+  .card { width: 480px; background: #111; padding: 32px 28px 36px; }
+
+  .header { text-align: center; margin-bottom: 28px; }
+  .emoji-big { font-size: 48px; display: block; margin-bottom: 6px; }
+  .title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 3px; color: #fff; line-height: 1; }
+  .subtitle { font-size: 12px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; }
+
+  .section-header { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .semana .section-label { background: #1a2a1a; color: #4caf50; border: 1px solid #2e5c2e; }
+  .finde .section-label { background: #2a1a2a; color: #ce93d8; border: 1px solid #5c2e5c; }
+  .equiv-header .section-label { background: #1a1a2a; color: #90caf9; border: 1px solid #2e3e6e; }
+  .calc-header .section-label { background: #1a2020; color: #4dd0e1; border: 1px solid #1a5560; }
+  .section-line { flex: 1; height: 1px; background: #222; }
+
+  .row { display: flex; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid #1a1a1a; }
+  .row:last-child { border-bottom: none; }
+  .beers { display: flex; gap: 2px; min-width: 72px; justify-content: flex-start; padding-top: 2px; flex-wrap: wrap; }
+  .beer-icon { font-size: 13px; line-height: 1; }
+  .info { flex: 1; }
+  .level-name { font-weight: 700; font-size: 13px; color: #fff; line-height: 1.2; }
+  .level-desc { font-size: 11px; color: #777; margin-top: 2px; line-height: 1.4; font-style: italic; }
+
+  .lvl-safe .level-name { color: #81c784; }
+  .lvl-warn .level-name { color: #fff176; }
+  .lvl-danger .level-name { color: #ff8a65; }
+  .lvl-critical .level-name { color: #ef5350; }
+  .lvl-transcend .level-name { color: #ce93d8; }
+  .lvl-quantum .level-name { color: #80deea; }
+
+  .umbral-inversion { text-align: center; padding: 12px 10px; margin: 8px 0 4px; background: linear-gradient(90deg, transparent, #2a1500, transparent); border-top: 1px dashed #ff6d00; border-bottom: 1px dashed #ff6d00; }
+  .umbral-text { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 2px; color: #ffffff; margin: 0 8px; }
+  .umbral-icon { font-size: 13px; }
+  .umbral-sub { font-size: 10px; color: #a04000; margin-top: 4px; letter-spacing: 0.5px; font-style: italic; }
+
+  .threshold-badge { display: inline-block; background: #ef5350; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 6px; border-radius: 3px; margin-left: 5px; vertical-align: middle; text-transform: uppercase; }
+  .note { text-align: center; font-size: 10px; color: #555; margin-top: 20px; letter-spacing: 1px; }
+
+  /* TABLA EQUIVALENCIAS */
+  .equiv-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+  .equiv-table thead tr { background: #1a1a2a; }
+  .equiv-table th { color: #90caf9; font-weight: 700; padding: 8px 6px; text-align: center; border-bottom: 1px solid #2e3e6e; letter-spacing: 0.5px; line-height: 1.5; }
+  .col-level { text-align: left !important; width: 44%; }
+  .col-sub { font-size: 9px; font-weight: 400; color: #7a9cc0; display: block; }
+  .equiv-table td { padding: 7px 6px; text-align: center; border-bottom: 1px solid #1a1a1a; color: #ccc; }
+  .equiv-table td:first-child { text-align: left; }
+  .er-safe td { color: #81c784; }
+  .er-warn td { color: #fff176; }
+  .er-danger td { color: #ff8a65; }
+  .er-critical td { color: #ef5350; }
+  .er-quantum td { color: #80deea; }
+  .er-umbral td { text-align: center; color: #ffffff; font-size: 10px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; padding: 8px; background: linear-gradient(90deg, transparent, #2a1500, transparent); border-top: 1px dashed #ff6d00; border-bottom: 1px dashed #ff6d00; }
+  .equiv-note { font-size: 10px; color: #555; text-align: center; margin-top: 8px; font-style: italic; }
+  .equiv-base { font-size: 11px; color: #666; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
+
+  /* CALCULADORA */
+  .calc-box { background: #0d1a1c; border: 1px solid #1a4a50; border-radius: 10px; padding: 20px; margin-top: 4px; }
+
+  /* Toggle día */
+  .day-toggle { display: flex; background: #1a1a1a; border-radius: 8px; padding: 3px; margin-bottom: 20px; gap: 3px; }
+  .day-btn { flex: 1; text-align: center; padding: 8px 4px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; color: #555; border: none; background: transparent; }
+  .day-btn.active-semana { background: #1a2a1a; color: #4caf50; }
+  .day-btn.active-finde { background: #2a1a2a; color: #ce93d8; }
+
+  /* Inputs */
+  .inputs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .input-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .input-label { font-size: 10px; color: #777; letter-spacing: 1px; text-transform: uppercase; text-align: center; }
+  .input-emoji { font-size: 22px; }
+  .input-cl { font-size: 9px; color: #555; }
+  .counter { display: flex; align-items: center; gap: 8px; }
+  .counter-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: #aaa; font-size: 18px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all 0.15s; }
+  .counter-btn:hover { background: #2a2a2a; color: #fff; }
+  .counter-val { font-size: 22px; font-weight: 700; color: #fff; min-width: 24px; text-align: center; }
+
+  /* Total cl */
+  .total-bar { background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .total-label { font-size: 10px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
+  .total-val { font-size: 14px; font-weight: 700; color: #4dd0e1; }
+  .total-equiv { font-size: 10px; color: #555; }
+
+  /* Resultado */
+  .result-box { border-radius: 8px; padding: 16px; text-align: center; transition: all 0.3s; border: 1px solid #222; }
+  .result-empty { color: #444; font-size: 12px; font-style: italic; }
+  .result-level { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; line-height: 1.1; margin-bottom: 4px; }
+  .result-desc { font-size: 11px; font-style: italic; margin-top: 6px; opacity: 0.8; }
+  .result-cl { font-size: 10px; color: #666; margin-top: 8px; }
+
+  .result-safe { border-color: #2e5c2e; background: #0d1a0d; }
+  .result-safe .result-level { color: #81c784; }
+  .result-warn { border-color: #5c5c00; background: #1a1a00; }
+  .result-warn .result-level { color: #fff176; }
+  .result-danger { border-color: #5c2e00; background: #1a0e00; }
+  .result-danger .result-level { color: #ff8a65; }
+  .result-critical { border-color: #5c0000; background: #1a0000; }
+  .result-critical .result-level { color: #ef5350; }
+  .result-transcend { border-color: #3a1a3a; background: #140a14; }
+  .result-transcend .result-level { color: #ce93d8; }
+  .result-quantum { border-color: #004a50; background: #001a1c; }
+  .result-quantum .result-level { color: #80deea; }
+
+  .reset-btn { width: 100%; margin-top: 12px; padding: 8px; background: transparent; border: 1px solid #2a2a2a; border-radius: 6px; color: #555; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .reset-btn:hover { border-color: #444; color: #888; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <span class="emoji-big">🍺</span>
+    <div class="title">Ranking de Evasión</div>
+    <div class="subtitle">Escala oficial del grupo · Jarritas de 33cl</div>
+  </div>
+
+  <!-- ENTRE SEMANA -->
+  <div class="section-header semana">
+    <span class="section-label">📅 Entre semana</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="row lvl-safe">
+    <div class="beers"><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Pre-calentamiento</div><div class="level-desc">"Solo una, que mañana trabajo."</div></div>
+  </div>
+  <div class="row lvl-safe">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Templanza controlada</div><div class="level-desc">Ya van dos. Sigues diciendo lo mismo.</div></div>
+  </div>
+  <div class="row lvl-warn">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Zona de confort</div><div class="level-desc">El problema sigue ahí pero ya parece más pequeño.</div></div>
+  </div>
+  <div class="row lvl-warn">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Pre-evasión</div><div class="level-desc">Técnicamente aún eres responsable de tus actos.</div></div>
+  </div>
+  <div class="row lvl-danger">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión convencional <span class="threshold-badge">🚨 UMBRAL</span></div><div class="level-desc">El problema ha dejado de existir. Esta noche.</div></div>
+  </div>
+  <div class="row lvl-danger">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión avanzada</div><div class="level-desc">Mañana te sorprenderá que el problema siga ahí.</div></div>
+  </div>
+  <div class="row lvl-critical">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión estratégica</div><div class="level-desc">Has tomado decisiones importantes. Ninguna buena.</div></div>
+  </div>
+  <div class="row lvl-critical">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Modo autodestructivo</div><div class="level-desc">Mañana en la oficina tú eres el problema.</div></div>
+  </div>
+  <div class="row lvl-quantum">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Trascendencia laboral ☢️</div><div class="level-desc">Ya no tienes trabajo que evitar. Enhorabuena.</div></div>
+  </div>
+
+  <!-- FIN DE SEMANA -->
+  <div class="section-header finde" style="margin-top: 26px;">
+    <span class="section-label">🎉 Fin de semana</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="row lvl-safe">
+    <div class="beers"><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Aperitivo social</div><div class="level-desc">"Vine a ver a la gente", dicen todos.</div></div>
+  </div>
+  <div class="row lvl-safe">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Calentamiento oficial</div><div class="level-desc">Ya nadie habla del trabajo. Bien.</div></div>
+  </div>
+  <div class="row lvl-safe">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Modo festivo</div><div class="level-desc">El móvil está boca abajo en la mesa.</div></div>
+  </div>
+  <div class="row lvl-warn">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión de bolsillo</div><div class="level-desc">En semana ya sería nivel 5. Aquí aún eres amateur.</div></div>
+  </div>
+  <div class="row lvl-warn">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Pre-evasión de fin de semana</div><div class="level-desc">El fin de semana es generoso. Aprovéchalo.</div></div>
+  </div>
+  <div class="row lvl-danger">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión convencional <span class="threshold-badge">🚨 UMBRAL</span></div><div class="level-desc">Ningún problema sobrevive esto.</div></div>
+  </div>
+  <div class="row lvl-danger">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión avanzada</div><div class="level-desc">Has redefinido el problema como "oportunidad".</div></div>
+  </div>
+  <div class="row lvl-critical">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión estratégica</div><div class="level-desc">Hay planes para el año que viene. No se cumplirán.</div></div>
+  </div>
+  <div class="row lvl-critical">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión de alta intensidad</div><div class="level-desc">Alguien ha propuesto un viaje. Todos han dicho que sí.</div></div>
+  </div>
+  <div class="row lvl-transcend">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión interdimensional</div><div class="level-desc">Ya no estáis evadiendo problemas. Sois el problema.</div></div>
+  </div>
+
+  <div class="umbral-inversion">
+    <span class="umbral-icon">⚠️</span>
+    <span class="umbral-text">UMBRAL DE INVERSIÓN EVASIVA</span>
+    <span class="umbral-icon">⚠️</span>
+    <div class="umbral-sub">A partir de aquí generas más problemas de los que evades</div>
+  </div>
+
+  <div class="row lvl-quantum">
+    <div class="beers"><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span><span class="beer-icon">🍺</span></div>
+    <div class="info"><div class="level-name">Evasión cuántica ☢️</div><div class="level-desc">Estás en el bar y en el trabajo a la vez. El lunes colapsará la función de onda.</div></div>
+  </div>
+
+  <!-- TABLA EQUIVALENCIAS -->
+  <div class="section-header equiv-header" style="margin-top: 32px;">
+    <span class="section-label">📐 Tabla de equivalencias</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="equiv-base">Escala base: jarrita 33cl &nbsp;·&nbsp; caña 20cl &nbsp;·&nbsp; tanque 50cl</div>
+  <table class="equiv-table">
+    <thead>
+      <tr>
+        <th class="col-level">Nivel</th>
+        <th>🍺<span class="col-sub">Jarritas (33cl)</span></th>
+        <th>🥛<span class="col-sub">Cañas (20cl)</span></th>
+        <th>🏺<span class="col-sub">Tanques (50cl)</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="er-safe"><td>Pre-calentamiento</td><td>1</td><td>2</td><td>1</td></tr>
+      <tr class="er-safe"><td>Templanza controlada</td><td>2</td><td>3</td><td>1</td></tr>
+      <tr class="er-warn"><td>Zona de confort</td><td>3</td><td>5</td><td>2</td></tr>
+      <tr class="er-warn"><td>Pre-evasión</td><td>4</td><td>7</td><td>3</td></tr>
+      <tr class="er-danger"><td>Evasión convencional 🚨</td><td>5</td><td>8</td><td>3</td></tr>
+      <tr class="er-danger"><td>Evasión avanzada</td><td>6</td><td>10</td><td>4</td></tr>
+      <tr class="er-critical"><td>Evasión estratégica</td><td>7</td><td>12</td><td>5</td></tr>
+      <tr class="er-critical"><td>Alta intensidad</td><td>8</td><td>13</td><td>5</td></tr>
+      <tr class="er-critical"><td>Interdimensional</td><td>9–10</td><td>15–17</td><td>6–7</td></tr>
+      <tr class="er-umbral"><td colspan="4">⚠️ UMBRAL DE INVERSIÓN EVASIVA ⚠️</td></tr>
+      <tr class="er-quantum"><td>Evasión cuántica ☢️</td><td>11</td><td>18</td><td>7</td></tr>
+    </tbody>
+  </table>
+  <div class="equiv-note">Equivalencias en cl totales, redondeadas al entero más cercano.</div>
+
+  <!-- CALCULADORA -->
+  <div class="section-header calc-header" style="margin-top: 32px;">
+    <span class="section-label">🧮 Calculadora de evasión</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="calc-box">
+    <!-- Toggle día -->
+    <div class="day-toggle">
+      <button class="day-btn active-semana" id="btn-semana" onclick="setDay('semana')">📅 Entre semana</button>
+      <button class="day-btn" id="btn-finde" onclick="setDay('finde')">🎉 Fin de semana</button>
+    </div>
+
+    <!-- Contadores -->
+    <div class="inputs-grid">
+      <div class="input-block">
+        <div class="input-emoji">🥛</div>
+        <div class="input-label">Cañas</div>
+        <div class="input-cl">20cl c/u</div>
+        <div class="counter">
+          <button class="counter-btn" onclick="change('canas', -1)">−</button>
+          <div class="counter-val" id="val-canas">0</div>
+          <button class="counter-btn" onclick="change('canas', 1)">+</button>
+        </div>
+      </div>
+      <div class="input-block">
+        <div class="input-emoji">🍺</div>
+        <div class="input-label">Jarritas</div>
+        <div class="input-cl">33cl c/u</div>
+        <div class="counter">
+          <button class="counter-btn" onclick="change('jarritas', -1)">−</button>
+          <div class="counter-val" id="val-jarritas">0</div>
+          <button class="counter-btn" onclick="change('jarritas', 1)">+</button>
+        </div>
+      </div>
+      <div class="input-block">
+        <div class="input-emoji">🏺</div>
+        <div class="input-label">Tanques</div>
+        <div class="input-cl">50cl c/u</div>
+        <div class="counter">
+          <button class="counter-btn" onclick="change('tanques', -1)">−</button>
+          <div class="counter-val" id="val-tanques">0</div>
+          <button class="counter-btn" onclick="change('tanques', 1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="total-bar">
+      <div>
+        <div class="total-label">Total ingerido</div>
+        <div class="total-equiv" id="total-equiv">0 jarritas equiv.</div>
+      </div>
+      <div class="total-val" id="total-cl">0 cl</div>
+    </div>
+
+    <!-- Resultado -->
+    <div class="result-box" id="result-box">
+      <div class="result-empty">Añade bebidas para conocer tu nivel 🍺</div>
+    </div>
+
+    <button class="reset-btn" onclick="resetAll()">↺ Reiniciar</button>
+  </div>
+
+  <div class="note">Escala oficial del grupo · Uso responsable de la evasión</div>
+
+</div>
+
+<script>
+  const state = { canas: 0, jarritas: 0, tanques: 0, day: 'semana' };
+
+  const levelsSemana = [
+    { min: 0,    max: 33,   name: 'Pre-calentamiento',    desc: '"Solo una, que mañana trabajo."',                  cls: 'safe' },
+    { min: 33,   max: 66,   name: 'Templanza controlada', desc: 'Ya van dos. Sigues diciendo lo mismo.',            cls: 'safe' },
+    { min: 66,   max: 99,   name: 'Zona de confort',      desc: 'El problema ya parece más pequeño.',               cls: 'warn' },
+    { min: 99,   max: 132,  name: 'Pre-evasión',          desc: 'Técnicamente aún eres responsable de tus actos.', cls: 'warn' },
+    { min: 132,  max: 165,  name: 'Evasión convencional 🚨', desc: 'El problema ha dejado de existir. Esta noche.', cls: 'danger' },
+    { min: 165,  max: 198,  name: 'Evasión avanzada',     desc: 'Mañana te sorprenderá que el problema siga ahí.', cls: 'danger' },
+    { min: 198,  max: 231,  name: 'Evasión estratégica',  desc: 'Has tomado decisiones importantes. Ninguna buena.', cls: 'critical' },
+    { min: 231,  max: 264,  name: 'Modo autodestructivo', desc: 'Mañana en la oficina tú eres el problema.',        cls: 'critical' },
+    { min: 264,  max: 9999, name: 'Trascendencia laboral ☢️', desc: 'Ya no tienes trabajo que evitar. Enhorabuena.', cls: 'quantum' },
+  ];
+
+  const levelsFinde = [
+    { min: 0,    max: 33,   name: 'Aperitivo social',           desc: '"Vine a ver a la gente", dicen todos.',           cls: 'safe' },
+    { min: 33,   max: 66,   name: 'Calentamiento oficial',      desc: 'Ya nadie habla del trabajo. Bien.',               cls: 'safe' },
+    { min: 66,   max: 99,   name: 'Modo festivo',               desc: 'El móvil está boca abajo en la mesa.',            cls: 'safe' },
+    { min: 99,   max: 132,  name: 'Evasión de bolsillo',        desc: 'En semana ya sería nivel 5. Aquí eres amateur.',  cls: 'warn' },
+    { min: 132,  max: 165,  name: 'Pre-evasión fin de semana',  desc: 'El fin de semana es generoso. Aprovéchalo.',      cls: 'warn' },
+    { min: 165,  max: 198,  name: 'Evasión convencional 🚨',   desc: 'Ningún problema sobrevive esto.',                 cls: 'danger' },
+    { min: 198,  max: 231,  name: 'Evasión avanzada',           desc: 'Has redefinido el problema como "oportunidad".', cls: 'danger' },
+    { min: 231,  max: 264,  name: 'Evasión estratégica',        desc: 'Hay planes para el año que viene. No se cumplirán.', cls: 'critical' },
+    { min: 264,  max: 297,  name: 'Evasión de alta intensidad', desc: 'Alguien ha propuesto un viaje. Todos han dicho que sí.', cls: 'critical' },
+    { min: 297,  max: 330,  name: 'Evasión interdimensional',   desc: 'Ya no estáis evadiendo problemas. Sois el problema.', cls: 'transcend' },
+    { min: 330,  max: 9999, name: 'Evasión cuántica ☢️',       desc: 'Estás en el bar y en el trabajo a la vez. El lunes colapsará la función de onda.', cls: 'quantum' },
+  ];
+
+  function setDay(day) {
+    state.day = day;
+    document.getElementById('btn-semana').className = 'day-btn' + (day === 'semana' ? ' active-semana' : '');
+    document.getElementById('btn-finde').className  = 'day-btn' + (day === 'finde'  ? ' active-finde'  : '');
+    update();
+  }
+
+  function change(key, delta) {
+    state[key] = Math.max(0, state[key] + delta);
+    document.getElementById('val-' + key).textContent = state[key];
+    update();
+  }
+
+  function resetAll() {
+    ['canas','jarritas','tanques'].forEach(k => { state[k] = 0; document.getElementById('val-' + k).textContent = 0; });
+    update();
+  }
+
+  function update() {
+    const totalCl = state.canas * 20 + state.jarritas * 33 + state.tanques * 50;
+    const equiv = totalCl / 33;
+    document.getElementById('total-cl').textContent = totalCl + ' cl';
+    document.getElementById('total-equiv').textContent = equiv.toFixed(1) + ' jarritas equiv.';
+
+    const box = document.getElementById('result-box');
+    if (totalCl === 0) {
+      box.className = 'result-box';
+      box.innerHTML = '<div class="result-empty">Añade bebidas para conocer tu nivel 🍺</div>';
+      return;
+    }
+
+    const levels = state.day === 'semana' ? levelsSemana : levelsFinde;
+    const lvl = levels.find(l => totalCl >= l.min && totalCl < l.max) || levels[levels.length - 1];
+
+    // Aviso umbral inversión (solo finde, nivel cuántico)
+    const umbralWarning = (state.day === 'finde' && lvl.cls === 'quantum')
+      ? '<div style="font-size:10px;color:#ff6d00;margin-top:8px;letter-spacing:1px;">⚠️ HAS CRUZADO EL UMBRAL DE INVERSIÓN EVASIVA</div>'
+      : '';
+
+    box.className = 'result-box result-' + lvl.cls;
+    box.innerHTML = `
+      <div class="result-level">${lvl.name}</div>
+      <div class="result-desc">${lvl.desc}</div>
+      ${umbralWarning}
+      <div class="result-cl">${totalCl} cl totales · equiv. a ${equiv.toFixed(1)} jarritas</div>
+    `;
+  }
+</script>
+</body>
+</html>
