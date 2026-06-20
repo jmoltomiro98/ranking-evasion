@@ -120,7 +120,7 @@
 <script>
   let imageBase64 = null;
   let imageMime = 'image/jpeg';
-  const GEMINI_KEY = 'AQ.Ab8RN6JEj_8kdMPX6l2EPiZF0RF6CqTQabLz4kOaFEChjgIztw';
+  const OR_KEY = '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';
 
   function handleFile(e) {
     const file = e.target.files[0];
@@ -198,30 +198,35 @@ Responde SOLO con este JSON exacto, sin texto extra ni backticks:
 Para nivel_key usa: safe (niveles 1-2), warn (3-4), danger (5-6), critical (7-8), transcend (9-10), quantum (11+)`;
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: imageMime, data: imageBase64 } },
-                { text: prompt }
-              ]
-            }],
-            generationConfig: { temperature: 0.8, maxOutputTokens: 600 }
-          })
-        }
-      );
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OR_KEY}`,
+          'HTTP-Referer': 'https://ranking-evasion.github.io',
+          'X-Title': 'Detector de Resaca',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-4-maverick:free',
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: `data:${imageMime};base64,${imageBase64}` } },
+              { type: 'text', text: prompt }
+            ]
+          }],
+          max_tokens: 600,
+          temperature: 0.8
+        })
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Error en la API de Gemini');
+        throw new Error(data.error?.message || 'Error en la API');
       }
 
-      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const raw = data.choices?.[0]?.message?.content || '';
       let parsed;
       try {
         parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
